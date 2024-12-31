@@ -58,8 +58,10 @@ void Sst4::begin(long baudRate=9600) {
 #elif ESP32
   Timer1 = timerBegin(0, 80, true);
   timerAttachInterrupt(Timer1, &shcTone, true);
-  timerAlarmWrite(Timer1, INTERVAL, true);
-  timerAlarmEnable(Timer1);
+  // timerAlarmWrite(Timer1, INTERVAL, true);
+  // timerAlarmEnable(Timer1);
+  timerAlarm(itimer1, INTERVAL, true, 0);
+  timerStart(itimer1);
 #endif
 }
 

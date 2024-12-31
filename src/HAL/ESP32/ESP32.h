@@ -108,8 +108,8 @@ portMUX_TYPE motorTimerMux = portMUX_INITIALIZER_UNLOCKED;
 IRAM_ATTR void cli() { portENTER_CRITICAL(&motorTimerMux); portENTER_CRITICAL(&siderealTimerMux); }
 #undef sei
 IRAM_ATTR void sei() { portEXIT_CRITICAL(&siderealTimerMux); portEXIT_CRITICAL(&motorTimerMux); }
-void timerAlarmsEnable() { timerAlarmEnable(itimer1); timerAlarmEnable(itimer3); timerAlarmEnable(itimer4); }
-void timerAlarmsDisable() { timerAlarmDisable(itimer1); timerAlarmDisable(itimer3); timerAlarmDisable(itimer4); }
+void timerAlarmsEnable() { timerStart(itimer1); timerStart(itimer3); timerStart(itimer4); }
+void timerAlarmsDisable() { timerStop(itimer1); timerStop(itimer3); timerStop(itimer4); }
 
 // Non-volatile storage ------------------------------------------------------------------------------
 #if defined(NV_AT24C32)
@@ -129,15 +129,17 @@ extern void SiderealClockSetInterval (long int);
 // Init Axis1 and Axis2 motor timers and set their priorities
 void HAL_Init_Timers_Motor() {
   // set the system timer for millis() to the second highest priority
-  itimer3 = timerBegin(2, 5, true);  // the timer frequency of an ESP32 is 80MHz.  80/5 = 16 MHz (which is a timer count in OnStep due to it's Mega2560 heritage.)
-  timerAttachInterrupt(itimer3, &TIMER3_COMPA_vect, true);
-  timerAlarmWrite(itimer3, 1000*16, true);
-  timerAlarmEnable(itimer3);
+  // Initialize timer 3
+  itimer3 = timerBegin(16000);  // the timer frequency of an ESP32-S3 is 80MHz. Using 16 kHz as the OnStep timer count due to its Mega2560 heritage.
+  timerAttachInterrupt(itimer3, &TIMER3_COMPA_vect); // Attach interrupt for timer 3
+  timerAlarm(itimer3, 1000, true, 0); // Set alarm to trigger every 1 ms
+  timerStart(itimer3); // Start timer 3
   
-  itimer4 = timerBegin(3, 5, true);
-  timerAttachInterrupt(itimer4, &TIMER4_COMPA_vect, true);
-  timerAlarmWrite(itimer4, 1000*16, true);
-  timerAlarmEnable(itimer4);
+  // Initialize timer 4
+  itimer4 = timerBegin(16000);  // the timer frequency of an ESP32-S3 is 80MHz. Using 16 kHz as the OnStep timer count due to its Mega2560 heritage.
+  timerAttachInterrupt(itimer4, &TIMER4_COMPA_vect); // Attach interrupt for timer 4
+  timerAlarm(itimer4, 1000, true, 0); // Set alarm to trigger every 1 ms
+  timerStart(itimer4); // Start timer 4
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -145,17 +147,23 @@ void HAL_Init_Timers_Motor() {
 
 // Init sidereal clock timer
 void HAL_Init_Timer_Sidereal() {
-  itimer1 = timerBegin(1, 5, true);
-  timerAttachInterrupt(itimer1, &TIMER1_COMPA_vect, true);
-  timerAlarmWrite(itimer1, 1000*16, true);
-  timerAlarmEnable(itimer1);
+  // itimer1 = timerBegin(1, 5, true);
+  itimer1 = timerBegin(16000);
+  // timerAttachInterrupt(itimer1, &TIMER1_COMPA_vect, true);
+  timerAttachInterrupt(itimer1, &TIMER1_COMPA_vect);
+  // timerAlarmWrite(itimer1, 1000*16, true);
+  // timerAlarmEnable(itimer1);
+  timerAlarm(itimer1, 1000, true, 0);
+  timerStart(itimer1);
 
   SiderealClockSetInterval(siderealInterval);
 }
 
 void Timer1SetInterval(long iv, double rateRatio) {
   iv=round(((double)iv)/rateRatio);
-  timerAlarmWrite(itimer1, iv, true);
+  timerStop(itimer1);                      // 停止定时器3
+  timerAlarm(itimer1, iv, true, 0);         // 更新报警值并重启报警
+  timerStart(itimer1);                     // 重启定时器3
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -183,10 +191,15 @@ void PresetTimerInterval(long iv, bool TPS, volatile uint32_t *nextRate, volatil
 
 // Must work from within the motor ISR timers, in tick units
 IRAM_ATTR void QuickSetIntervalAxis1(uint32_t r) {
-  timerAlarmWrite(itimer3, r, true);
+    timerStop(itimer3);                      // 停止定时器3
+    timerAlarm(itimer3, r, true, 0);         // 更新报警值并重启报警
+    timerStart(itimer3);                     // 重启定时器3
 }
+
 IRAM_ATTR void QuickSetIntervalAxis2(uint32_t r) {
-  timerAlarmWrite(itimer4, r, true);
+    timerStop(itimer4);                      // 停止定时器4
+    timerAlarm(itimer4, r, true, 0);         // 更新报警值并重启报警
+    timerStart(itimer4);                     // 重启定时器4
 }
 
 // --------------------------------------------------------------------------------------------------

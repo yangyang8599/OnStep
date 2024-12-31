@@ -16,7 +16,7 @@ TaskHandle_t __toneTask;
 // find and disable any PWM already on this pin
 void __pwmDeallocateChannel(int pin) {
   for (int channel=__ANALOG_PWM_CHANNEL_START; channel<15; channel++) {
-    if (__channelMap[channel]==pin) { ledcDetachPin(pin); ledcWrite(channel,0); __channelMap[channel]=-1; break; }
+    if (__channelMap[channel]==pin) { ledcDetach(pin); ledcWrite(channel,0); __channelMap[channel]=-1; break; }
   }
 }
 
@@ -42,7 +42,7 @@ void __toneStop(void * pvParameters)
   portENTER_CRITICAL(&__analogOutMux);
   int channel=__pwmGetChannel(__tone_p);
   if (channel>=0) {
-    ledcDetachPin(__tone_p);
+    ledcDetach(__tone_p);
     ledcWrite(channel,0);
     __pwmDeallocateChannel(__tone_p);
   }
@@ -51,37 +51,37 @@ void __toneStop(void * pvParameters)
   vTaskDelete(NULL);
 }
 
-__attribute__ ((weak)) void tone(uint8_t pin, unsigned int frequency, unsigned long duration = 0)
-{
-  portENTER_CRITICAL(&__analogOutMux);
-  int channel=__pwmAllocateChannel(pin);
-  if (channel>=0) {
-    __tone_p=pin; __tone_f=frequency; __tone_d=duration;
-    ledcAttachPin(pin,channel);
-    ledcWriteTone(channel,frequency);
-    if (duration) xTaskCreatePinnedToCore(__toneStop,"__toneStop",10000,NULL,1,&__toneTask,0);
-  } else log_e("Tone, PWM channel in use or unavailable.");
-  portEXIT_CRITICAL(&__analogOutMux);
-}
+// __attribute__ ((weak)) void tone(uint8_t pin, unsigned int frequency, unsigned long duration = 0)
+// {
+//   portENTER_CRITICAL(&__analogOutMux);
+//   int channel=__pwmAllocateChannel(pin);
+//   if (channel>=0) {
+//     __tone_p=pin; __tone_f=frequency; __tone_d=duration;
+//     ledcAttach(pin,channel);
+//     ledcWriteTone(channel,frequency);
+//     if (duration) xTaskCreatePinnedToCore(__toneStop,"__toneStop",10000,NULL,1,&__toneTask,0);
+//   } else log_e("Tone, PWM channel in use or unavailable.");
+//   portEXIT_CRITICAL(&__analogOutMux);
+// }
 
-__attribute__ ((weak)) void noTone(uint8_t pin)
-{
-  portENTER_CRITICAL(&__analogOutMux);
-  int channel=__pwmGetChannel(pin);
-  if (channel>=0) {
-    ledcDetachPin(pin);
-    ledcWrite(channel,0);
-    __pwmDeallocateChannel(pin);
-  } else log_e("noTone, no PWM channel?");
-  portEXIT_CRITICAL(&__analogOutMux);
-}
+// __attribute__ ((weak)) void noTone(uint8_t pin)
+// {
+//   portENTER_CRITICAL(&__analogOutMux);
+//   int channel=__pwmGetChannel(pin);
+//   if (channel>=0) {
+//     ledcDetach(pin);
+//     ledcWrite(channel,0);
+//     __pwmDeallocateChannel(pin);
+//   } else log_e("noTone, no PWM channel?");
+//   portEXIT_CRITICAL(&__analogOutMux);
+// }
 
 __attribute__ ((weak)) void analogWrite(uint8_t pin, int value) {
   portENTER_CRITICAL(&__analogOutMux);
   int channel=__pwmAllocateChannel(pin,true);  // using option to clear/detach any existing channel for this pin
   if (channel>=0) {
-    ledcSetup(channel,1000,8); // 1000Hz, 8 bit
-    ledcAttachPin(pin,channel);
+    // ledcSetup(channel,1000,8); // 1000Hz, 8 bit
+    ledcAttach(pin,1000,channel);
     ledcWrite(channel,value);
     // just disconnect and go digital if value is 0 or 255
     if (value==0) { noTone(pin); digitalWrite(pin,LOW); }

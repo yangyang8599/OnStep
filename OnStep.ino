@@ -61,6 +61,8 @@
 
 #include <errno.h>
 #include <math.h>
+#include <Arduino.h> // Arduino 框架的主头文件
+#include <esp32-hal-ledc.h> // 提供 LEDC 功能的定义
 
 #include "src/sd_drivers/Models.h"
 #include "Config.h"
