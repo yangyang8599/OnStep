@@ -43,7 +43,7 @@
 #define Axis1_M2             23     // Microstep Mode 2 or SPI CS
 #define Axis1_M3           Aux2     // SPI MISO/Fault
 #define Axis1_STEP           18     // Step
-#define Axis1_DIR             0     // Dir
+#define Axis1_DIR            19     // Dir
 #define Axis1_DECAY    Axis1_M2     // Decay mode
 #define Axis1_HOME         Aux3     // Sense home position
 
@@ -53,8 +53,8 @@
 #define Axis2_M1             14     // Microstep Mode 1 or SPI SCK
 #define Axis2_M2              5     // Microstep Mode 2 or SPI CS
 #define Axis2_M3           Aux2     // SPI MISO/Fault
-#define Axis2_STEP           27     // Step
-#define Axis2_DIR            26     // Dir
+#define Axis2_STEP           16     // Step
+#define Axis2_DIR            17     // Dir
 #define Axis2_DECAY    Axis2_M2     // Decay mode
 #define Axis2_HOME         Aux4     // Sense home position
 
@@ -65,7 +65,7 @@
 
 // For focuser1 stepper driver
 #define Axis4_EN           Aux2     // Enable pin on Aux2 but can be turned OFF during validation
-#define Axis4_STEP           19     // Step
+#define Axis4_STEP           99     // Step TODO
 #define Axis4_DIR            15     // Dir
 
 // For focuser2 stepper driver

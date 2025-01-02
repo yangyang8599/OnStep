@@ -105,6 +105,8 @@ void processCommands() {
       commandError=CE_NONE;
 // Handles empty and one char replies
       reply[0]=0; reply[1]=0;
+    String output1 = ":" + String(command) + String(parameter) + "#||";
+    SerialC.print(output1); // 输出: :CMDPARAM#||
 
 //   (char)6 - Special
       if (command[0] == (char)6) {
@@ -1308,6 +1310,7 @@ void processCommands() {
           if (i >= 0 && i <= 16399) {
             if ((parameter[0] == 'e' || parameter[0] == 'w') && guideDirAxis1 == 0) {
 #if SEPARATE_PULSE_GUIDE_RATE == ON
+SerialC.print(":====>" + String(command) + String(parameter) + "#||"); 
               commandError=startGuideAxis1(parameter[0],currentPulseGuideRate,i,true);
 #else
               commandError=startGuideAxis1(parameter[0],currentGuideRate,i,true);
@@ -2250,6 +2253,8 @@ void processCommands() {
           if (cmdA.checksum)  { checksum(reply); strcat(reply,cmdA.getSeq()); supress_frame=false; }
           if (!supress_frame) strcat(reply,"#");
           SerialA.print(reply);
+          SerialC.print(reply);
+
         }
       } else
 
@@ -2359,6 +2364,7 @@ bool cmdReply(char *s) {
 
 void logErrors(const char ch[], char cmd[], char param[], CommandErrors cmdErr) {
   if (cmdErr <= CE_0) return;
+  SerialC.println(commandErrorStr[cmdErr]);
   V(ch); V(" \""); V(cmd); V(param); V("\", Error "); VL(commandErrorStr[cmdErr]);
 }
 

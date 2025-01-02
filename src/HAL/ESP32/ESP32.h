@@ -19,11 +19,19 @@
 
 // SerialC
 #if SERIAL_C_BAUD_DEFAULT != OFF
-  #if SERIAL_C_BAUD_DEFAULT > 0
-    #error "Bluetooth on ESP32 SERIAL_C_BAUD_DEFAULT gets set to ON or OFF only."
-  #endif
-  #include <BluetoothSerial.h>
-  BluetoothSerial SerialC;
+  // #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+    // 这里esp32S3 使用BLE
+    #include <BleSerial.h>
+    BleSerial SerialC;
+  // #else
+  //   //这是传统esp32 传统蓝牙
+  //   #if SERIAL_C_BAUD_DEFAULT > 0
+  //     #error "Bluetooth on ESP32 SERIAL_C_BAUD_DEFAULT gets set to ON or OFF only."
+  //   #endif
+  //   #include <BluetoothSerial.h>
+  //   BluetoothSerial SerialC;
+  // #endif
+
   #define HAL_SERIAL_C_ENABLED
   #define HAL_SERIAL_C_BLUETOOTH
   #undef SERIAL_C_BAUD_DEFAULT
@@ -123,23 +131,46 @@ void timerAlarmsDisable() { timerStop(itimer1); timerStop(itimer3); timerStop(it
 //--------------------------------------------------------------------------------------------------
 // Initialize timers
 
+hw_timer_t *timer = NULL;
+volatile SemaphoreHandle_t timerSemaphore;
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+
+volatile uint32_t isrCounter = 0;
+volatile uint32_t lastIsrAt = 0;
+
+void ARDUINO_ISR_ATTR onTimer() {
+  uint32_t isrCount = 0;
+  // Increment the counter and set the time of ISR
+  portENTER_CRITICAL_ISR(&timerMux);
+  isrCounter = isrCounter + 1;
+  lastIsrAt = millis();
+  isrCount = isrCounter;
+  portEXIT_CRITICAL_ISR(&timerMux);
+
+  // It is safe to use digitalRead/Write here if you want to toggle an output
+  digitalWrite(18, (isrCount % 2) ? HIGH : LOW);
+}
+IRAM_ATTR ISR(TIMER3_COMPA_vect) {
+
+}
+
 extern long int siderealInterval;
 extern void SiderealClockSetInterval (long int);
 
 // Init Axis1 and Axis2 motor timers and set their priorities
 void HAL_Init_Timers_Motor() {
+    SerialA.print("HAL_Init_Timers_Motor");
+
   // set the system timer for millis() to the second highest priority
   // Initialize timer 3
-  itimer3 = timerBegin(16000);  // the timer frequency of an ESP32-S3 is 80MHz. Using 16 kHz as the OnStep timer count due to its Mega2560 heritage.
-  timerAttachInterrupt(itimer3, &TIMER3_COMPA_vect); // Attach interrupt for timer 3
+  itimer3 = timerBegin(1000000);  // the timer frequency of an ESP32-S3 is 80MHz. Using 16 kHz as the OnStep timer count due to its Mega2560 heritage.
+  timerAttachInterrupt(itimer3, &onTimer); // Attach interrupt for timer 3
   timerAlarm(itimer3, 1000, true, 0); // Set alarm to trigger every 1 ms
-  timerStart(itimer3); // Start timer 3
   
   // Initialize timer 4
-  itimer4 = timerBegin(16000);  // the timer frequency of an ESP32-S3 is 80MHz. Using 16 kHz as the OnStep timer count due to its Mega2560 heritage.
+  itimer4 = timerBegin(1000000);  // the timer frequency of an ESP32-S3 is 80MHz. Using 16 kHz as the OnStep timer count due to its Mega2560 heritage.
   timerAttachInterrupt(itimer4, &TIMER4_COMPA_vect); // Attach interrupt for timer 4
   timerAlarm(itimer4, 1000, true, 0); // Set alarm to trigger every 1 ms
-  timerStart(itimer4); // Start timer 4
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -147,14 +178,14 @@ void HAL_Init_Timers_Motor() {
 
 // Init sidereal clock timer
 void HAL_Init_Timer_Sidereal() {
+  SerialA.println("HAL_Init_Timer_Sidereal");
   // itimer1 = timerBegin(1, 5, true);
-  itimer1 = timerBegin(16000);
+  itimer1 = timerBegin(1000000);
   // timerAttachInterrupt(itimer1, &TIMER1_COMPA_vect, true);
   timerAttachInterrupt(itimer1, &TIMER1_COMPA_vect);
   // timerAlarmWrite(itimer1, 1000*16, true);
   // timerAlarmEnable(itimer1);
   timerAlarm(itimer1, 1000, true, 0);
-  timerStart(itimer1);
 
   SiderealClockSetInterval(siderealInterval);
 }

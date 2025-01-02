@@ -56,7 +56,7 @@
 
 // Enable additional debugging and/or status messages on the specified DebugSer port
 // Note that the DebugSer port cannot be used for normal communication with OnStep
-#define DEBUG OFF             // default=OFF, use "DEBUG ON" for background errors only, use "DEBUG VERBOSE" for all errors and status messages
+#define DEBUG VERBOSE             // default=OFF, use "DEBUG ON" for background errors only, use "DEBUG VERBOSE" for all errors and status messages
 #define DebugSer SerialA      // default=SerialA, or Serial4 for example (always 9600 baud)
 
 #include <errno.h>
@@ -204,7 +204,7 @@ void setup() {
   #endif
 #endif
 #ifdef HAL_SERIAL_C_ENABLED
-  SerialC.begin(SERIAL_C_BAUD_DEFAULT);
+    SerialC.begin(SERIAL_C_BAUD_DEFAULT);
 #endif
 #ifdef HAL_SERIAL_D_ENABLED
   #ifdef SERIAL_D_RX
@@ -232,7 +232,9 @@ void setup() {
 
   // set pins for input/output as specified in Config.h and PinMap.h
   VLF("MSG: Init pins");
+  SerialA.println("------MSG:init pins");
   initPins();
+  SerialA.println("------MSG:init pins ok");
 
   // get the TLS ready (if present)
   VLF("MSG: Init TLS");
@@ -251,22 +253,27 @@ void setup() {
     }
   }
   V(E2END+1); VLF(" Bytes");
+  SerialA.println("------MSG:NV");
 
   // if this is the first startup set EEPROM to defaults
   initWriteNvValues();
+  SerialA.println("------MSG:initWriteNvValues");
 
   // now read any saved values from EEPROM into variables to restore our last state
   VLF("MSG: Read NV settings");
   initReadNvValues();
+  SerialA.println("------MSG:initReadNvValues");
 
   // set initial values for some variables
   VLF("MSG: Init startup settings");
   initStartupValues();
   initStartPosition();
+  SerialA.println("------MSG:initStartPosition");
 
   // initialize the Object Library
   VLF("MSG: Init library/catalogs");
   Lib.init();
+  SerialA.println("------MSG:Lib.init");
 
   // get guiding ready
   VLF("MSG: Init guiding");

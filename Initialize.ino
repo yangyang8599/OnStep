@@ -40,11 +40,13 @@ void initPins() {
   pinMode(GeneralPurposePowerPin1,OUTPUT);
   digitalWrite(GeneralPurposePowerPin1,HIGH);
 #endif
+  SerialA.println("===MSG: GeneralPurposePowerPin1");
 
 #ifdef GeneralPurposePowerPin2
   pinMode(GeneralPurposePowerPin2,OUTPUT);
   digitalWrite(GeneralPurposePowerPin2,HIGH);
 #endif
+  SerialA.println("===MSG: GeneralPurposePowerPin2");
 
   // Pull the Axis1/2 RST Pin HIGH on the MaxESP2
 #if PINMAP == MaxESP2
@@ -59,6 +61,7 @@ void initPins() {
   #endif
   ledOn=true;
 #endif
+  SerialA.println("===MSG: LED_STATUS");
 
   // light status LED (provides pwm'd GND for polar reticule)
 #if LED_STATUS >= 0
@@ -69,11 +72,13 @@ void initPins() {
   analogWrite(LEDnegPin,LED_STATUS);
   ledOn=true;
 #endif
+  SerialA.println("===MSG: analogWrite");
 
   // light reticule LED
 #if LED_RETICLE >= 0
   pinMode(ReticlePin,OUTPUT); analogWrite(ReticlePin,reticuleBrightness);
 #endif
+  SerialA.println("===MSG: LED_RETICLE");
 
   // light second status LED
 #if LED_STATUS2 == ON
@@ -85,12 +90,14 @@ void initPins() {
   pinMode(LEDneg2Pin,OUTPUT); digitalWrite(LEDneg2Pin,LOW);
   analogWrite(LEDneg2Pin,LED_STATUS2);
 #endif
+  SerialA.println("===MSG: LED_STATUS2");
 
   // ready the sound/buzzer pin
 #if BUZZER == ON || BUZZER >= 0
   pinMode(TonePin,OUTPUT);
   digitalWrite(TonePin,LOW);
 #endif
+  SerialA.println("===MSG: BUZZER");
 
   // Home position sensing
 #if HOME_SENSE == ON
@@ -103,6 +110,7 @@ void initPins() {
   pinMode(Axis1_HOME,INPUT_PULLDOWN);
   pinMode(Axis2_HOME,INPUT_PULLDOWN);
 #endif
+  SerialA.println("===MSG: HOME_SENSE");
 
   // limit switch sense
 #if LIMIT_SENSE == ON
@@ -112,6 +120,7 @@ void initPins() {
 #elif LIMIT_SENSE == ON_PULLDOWN
   pinMode(LimitPin,INPUT_PULLDOWN);
 #endif
+  SerialA.println("===MSG: LIMIT_SENSE");
 
   // PEC index sense
 #if PEC_SENSE == ON
@@ -121,6 +130,7 @@ void initPins() {
 #elif PEC_SENSE == ON_PULLDOWN
   pinMode(PecPin,INPUT_PULLDOWN);
 #endif
+  SerialA.println("===MSG: PEC_SENSE");
 
   // Pulse per second
 #if PPS_SENSE == ON
@@ -136,12 +146,17 @@ void initPins() {
   pinMode(PpsPin,INPUT_PULLDOWN);
   attachInterrupt(digitalPinToInterrupt(PpsPin),clockSync,RISING);
 #endif
+  SerialA.println("===MSG: PPS_SENSE");
 
   // Stepper driver control
   pinMode(Axis1_STEP,OUTPUT);
+  SerialA.println("===MSG: Axis1_STEP");
   pinMode(Axis1_DIR,OUTPUT); 
+  SerialA.println("===MSG: Axis1_DIR");
   pinMode(Axis2_STEP,OUTPUT);
+  SerialA.println("===MSG: Axis2_STEP");
   pinMode(Axis2_DIR,OUTPUT); 
+  SerialA.println("===MSG: Axis2_DIR");
 
 #ifdef POWER_SUPPLY_PINS_ON
   // provide 5V (or 3.3V) power to stepper drivers if requested (classic Pin-map)

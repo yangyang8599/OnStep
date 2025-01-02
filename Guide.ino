@@ -62,10 +62,13 @@ void guide() {
   guideAxis1.fixed=0;
   cli(); long guideLst=lst; sei();
   if (guideLst != guideSiderealTimer) {
+    SerialC.print(":####>" + String(guideLst)+"-" + String(guideSiderealTimer) + "#||"); 
     guideSiderealTimer=guideLst;  
     if (guideDirAxis1) {
       if (!inbacklashAxis1) {
         // guideAxis1 keeps track of how many steps we've moved for PEC recording
+            SerialC.print(":####>inbacklashAxis1#||"); 
+
         if (guideDirAxis1 == 'e') guideAxis1.fixed=-amountGuideAxis1.fixed; else if (guideDirAxis1 == 'w') guideAxis1.fixed=amountGuideAxis1.fixed;
 
         // for pulse guiding, count down the mS and stop when timed out
@@ -75,6 +78,8 @@ void guide() {
           if (guideTimeRemainingAxis1 <= 0) { guideDirAxis1='b'; } // break
         }
       } else {
+            SerialC.print(":####>guideTimeThisIntervalAxis1#||"); 
+
         // don't count time if in backlash
         guideTimeThisIntervalAxis1=micros();
       }
@@ -82,6 +87,8 @@ void guide() {
     
     if (guideDirAxis2) {
       if (!inbacklashAxis2) {
+                    SerialC.print(":####>222inbacklashAxis2#||"); 
+
         // for pulse guiding, count down the mS and stop when timed out
         if (guideTimeRemainingAxis2 > 0) {
           guideTimeRemainingAxis2-=(long)(micros()-guideTimeThisIntervalAxis2);
@@ -89,6 +96,8 @@ void guide() {
           if (guideTimeRemainingAxis2 <= 0) { guideDirAxis2='b'; }  // break 
         }
       } else {
+                    SerialC.print(":####>222guideTimeThisIntervalAxis2#||"); 
+
         // don't count time if in backlash
         guideTimeThisIntervalAxis2=micros();
       }
@@ -143,6 +152,7 @@ void deactivateBacklashComp() {
 // start a guide in RA or Azm, direction must be 'e', 'w', or 'b', guideRate is the rate selection (0 to 9), guideDuration is in ms (0 to ignore) 
 CommandErrors startGuideAxis1(char direction, int guideRate, long guideDuration, bool pulseGuide) {
   // Check state
+  SerialA.println("******startGuideAxis1"+direction);
   if (faultAxis1)                         return CE_SLEW_ERR_HARDWARE_FAULT;
   if (!axis1Enabled)                      return CE_SLEW_ERR_IN_STANDBY;
   if (parkStatus == Parked)               return CE_SLEW_ERR_IN_PARK;
@@ -159,7 +169,8 @@ CommandErrors startGuideAxis1(char direction, int guideRate, long guideDuration,
                         generalError == ERR_UNDER_POLE ||
                         generalError == ERR_MERIDIAN ||
                         generalError == ERR_ALT_MAX)) return CE_SLEW_ERR_OUTSIDE_LIMITS;
-  
+  SerialC.print(":====2>" + String(direction) + String(guideRate)+ String(guideDuration)+ String(pulseGuide) + "#||"); 
+
   if (guideRate < 3) deactivateBacklashComp(); else reactivateBacklashComp();
   enableGuideRate(guideRate);
   guideDirAxis1=direction;
@@ -169,7 +180,8 @@ CommandErrors startGuideAxis1(char direction, int guideRate, long guideDuration,
   if (guideDirAxis1 == 'e') guideTimerRateAxis1=-guideTimerBaseRateAxis1; else guideTimerRateAxis1=guideTimerBaseRateAxis1; 
   sei();
   lastGuidePulseGuideAxis1 = pulseGuide;
-  
+  SerialC.print(":====3>" + String(direction) + String(guideRate)+ String(guideDuration)+ String(pulseGuide) + "#||"); 
+
   return CE_NONE;
 }
 
